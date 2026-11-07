@@ -426,6 +426,56 @@ let isConditionTrue_0 = false;
 };
 
 gdjs.Untitled_32sceneCode.func = function(runtimeScene) {
+
+  // Akash Player movement controls (WASD & Arrow Keys)
+  var players = runtimeScene.getObjects("Player");
+  var guns = runtimeScene.getObjects("Gun");
+  var cursorX = gdjs.evtTools.input.getCursorX(runtimeScene, "", 0);
+  var cursorY = gdjs.evtTools.input.getCursorY(runtimeScene, "", 0);
+  
+  for (var pi = 0; pi < players.length; pi++) {
+    var p = players[pi];
+    var dx = 0;
+    var dy = 0;
+    var speed = 220 * (runtimeScene.getTimeManager().getElapsedTime() / 1000);
+    
+    if (gdjs.evtTools.input.isKeyPressed(runtimeScene, "Left") || gdjs.evtTools.input.isKeyPressed(runtimeScene, "a") || gdjs.evtTools.input.isKeyPressed(runtimeScene, "A")) dx -= speed;
+    if (gdjs.evtTools.input.isKeyPressed(runtimeScene, "Right") || gdjs.evtTools.input.isKeyPressed(runtimeScene, "d") || gdjs.evtTools.input.isKeyPressed(runtimeScene, "D")) dx += speed;
+    if (gdjs.evtTools.input.isKeyPressed(runtimeScene, "Up") || gdjs.evtTools.input.isKeyPressed(runtimeScene, "w") || gdjs.evtTools.input.isKeyPressed(runtimeScene, "W")) dy -= speed;
+    if (gdjs.evtTools.input.isKeyPressed(runtimeScene, "Down") || gdjs.evtTools.input.isKeyPressed(runtimeScene, "s") || gdjs.evtTools.input.isKeyPressed(runtimeScene, "S")) dy += speed;
+    
+    if (dx !== 0 || dy !== 0) {
+      p.setX(p.getX() + dx);
+      p.setY(p.getY() + dy);
+      if (p.getBehavior("Animation")) p.getBehavior("Animation").setAnimationName("Run");
+    } else {
+      if (p.getBehavior("Animation")) p.getBehavior("Animation").setAnimationName("idie");
+    }
+    
+    // Attach Gun to Player
+    for (var gi = 0; gi < guns.length; gi++) {
+      var g = guns[gi];
+      g.setPosition(p.getX() + 16, p.getY() + 16);
+      g.rotateTowardPosition(cursorX, cursorY, 0, runtimeScene);
+    }
+  }
+
+  // Gun shooting on Left Click
+  if (gdjs.evtTools.input.isMouseButtonPressed(runtimeScene, "Left")) {
+    for (var gi = 0; gi < guns.length; gi++) {
+      var g = guns[gi];
+      if (!g._lastShot || Date.now() - g._lastShot > 250) {
+        g._lastShot = Date.now();
+        var b = runtimeScene.createObject("Bullet");
+        if (b) {
+          b.setPosition(g.getX(), g.getY());
+          b.setAngle(g.getAngle());
+          b.addPolarForce(g.getAngle(), 600, 1);
+        }
+      }
+    }
+  }
+
 runtimeScene.getOnceTriggers().startNewFrame();
 
 gdjs.Untitled_32sceneCode.GDfloorObjects1.length = 0;
